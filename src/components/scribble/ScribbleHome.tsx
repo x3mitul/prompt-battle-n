@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Users, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Users, Sparkles, Home, ArrowLeft } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useToast } from "@/hooks/use-toast";
 
 export const ScribbleHome = () => {
+  const navigate = useNavigate();
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [avatar, setAvatar] = useState("👤");
@@ -16,7 +17,6 @@ export const ScribbleHome = () => {
   
   const { socket, connected } = useSocket();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const avatars = ["👤", "😀", "😎", "🤖", "👻", "🦄", "🐱", "🐶", "🦊", "🐼"];
 
@@ -111,6 +111,27 @@ export const ScribbleHome = () => {
   return (
           <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-6xl space-y-8 animate-fade-in-up">
+          {/* Navigation */}
+          <div className="flex justify-start gap-3">
+            <Button 
+              onClick={() => navigate(-1)}
+              variant="outline" 
+              className="glass border-primary/30 hover:border-primary/50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Link to="/">
+              <Button 
+                variant="outline" 
+                className="glass border-primary/30 hover:border-primary/50"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </div>
+
           {/* Header */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/30 mb-4">

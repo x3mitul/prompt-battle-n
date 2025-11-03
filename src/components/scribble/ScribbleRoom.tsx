@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PlayerLobby } from "./PlayerLobby";
 import { PromptPhase } from "./PromptPhase";
 import { GeneratingPhase } from "./GeneratingPhase";
@@ -63,6 +73,7 @@ export const ScribbleRoom = () => {
   const [finalScores, setFinalScores] = useState<{scores: Array<{id: string; name: string; avatar: string; score: number}>; winner: {id: string; name: string; avatar: string; score: number}; allResults: Array<{round: number; word: string; votes: Record<string, number>; winner: string | string[]; scores: Array<{id: string; name: string; score: number}>}>} | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
     if (!socket || !connected) {
@@ -225,6 +236,15 @@ export const ScribbleRoom = () => {
   };
 
   const handleLeaveRoom = () => {
+    // Show confirmation dialog if game is in progress
+    if (room && room.state !== 'waiting' && room.state !== 'finished') {
+      setShowExitDialog(true);
+    } else {
+      confirmLeave();
+    }
+  };
+
+  const confirmLeave = () => {
     if (socket) {
       socket.disconnect();
       socket.connect();
@@ -258,16 +278,17 @@ export const ScribbleRoom = () => {
   }
 
   // Render appropriate phase
-  switch (room.state) {
-    case "waiting":
-    case "starting":
-      return (
-        <PlayerLobby
-          room={room}
-          isHost={isHost}
-          onToggleReady={handleToggleReady}
-          onStartGame={handleStartGame}
-          onLeave={handleLeaveRoom}
+  const renderPhase = () => {
+    switch (room.state) {
+      case "waiting":
+      case "starting":
+        return (
+          <PlayerLobby
+            room={room}
+            isHost={isHost}
+            onToggleReady={handleToggleReady}
+            onStartGame={handleStartGame}
+            onLeave={handleLeaveRoom}
         />
       );
 
@@ -320,7 +341,32 @@ export const ScribbleRoom = () => {
         />
       );
 
-    default:
-      return null;
-  }
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+      {renderPhase()}
+      
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Game?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The game is still in progress. Are you sure you want to leave? You'll lose your progress and other players will be notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay in Game</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave} className="bg-destructive hover:bg-destructive/90">
+              Leave Game
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 };

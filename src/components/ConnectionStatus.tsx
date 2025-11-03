@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSocket } from '@/hooks/useSocket';
-import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 

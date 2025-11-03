@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Sparkles, ArrowRight, Home } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CheckCircle2, Circle, Sparkles, ArrowRight, Home, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { AIOrb } from "./AIOrb";
 import { SandboxLesson } from "./lessons/SandboxLesson";
 import { ReactorLesson } from "./lessons/ReactorLesson";
@@ -20,6 +20,7 @@ const lessons = [
 ];
 
 export const LearningPhase = () => {
+  const navigate = useNavigate();
   const [currentLesson, setCurrentLesson] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<number[]>([]);
 
@@ -73,12 +74,22 @@ export const LearningPhase = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4 animate-fade-in">
-          <Link to="/">
-            <Button variant="outline" className="mb-4 border-primary/30 hover:border-primary/50">
-              <Home className="w-4 h-4 mr-2" />
-              Home
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(-1)}
+              className="border-muted/30 hover:border-primary/50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
             </Button>
-          </Link>
+            <Link to="/">
+              <Button variant="outline" className="border-primary/30 hover:border-primary/50">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </div>
           
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/30 text-sm font-medium">
             <Sparkles className="w-4 h-4 text-primary" />

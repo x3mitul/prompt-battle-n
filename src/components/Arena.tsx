@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Trophy, Target, Zap, Home } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Sparkles, Trophy, Target, Zap, Home, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const levels = [
@@ -17,6 +17,7 @@ const levels = [
 ];
 
 export const Arena = () => {
+  const navigate = useNavigate();
   const [currentLevel, setCurrentLevel] = useState(0);
   const [userPrompt, setUserPrompt] = useState("");
   const [score, setScore] = useState(0);
@@ -128,12 +129,22 @@ export const Arena = () => {
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4 animate-fade-in">
-          <Link to="/">
-            <Button variant="outline" className="mb-4 border-primary/30 hover:border-primary/50">
-              <Home className="w-4 h-4 mr-2" />
-              Home
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(-1)}
+              className="border-muted/30 hover:border-primary/50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
             </Button>
-          </Link>
+            <Link to="/">
+              <Button variant="outline" className="border-primary/30 hover:border-primary/50">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </div>
           
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-secondary/30 text-sm font-medium">
             <Zap className="w-4 h-4 text-secondary" />
