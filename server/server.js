@@ -65,6 +65,18 @@ app.use(compression()); // Enable gzip compression
 const gameManager = new GameManager(io);
 const promptEvaluator = new PromptEvaluator();
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Prompt Battle Server is running',
+    endpoints: {
+      health: '/health',
+      evaluate: '/api/evaluate-prompt'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', rooms: gameManager.getRoomCount() });
