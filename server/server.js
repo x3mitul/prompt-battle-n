@@ -128,6 +128,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`🎮 Prompt Battle server running on port ${PORT}`);
+const HOST = '0.0.0.0'; // Bind to all network interfaces for Railway
+
+httpServer.listen(PORT, HOST, () => {
+  console.log(`🎮 Prompt Battle server running on ${HOST}:${PORT}`);
 });
