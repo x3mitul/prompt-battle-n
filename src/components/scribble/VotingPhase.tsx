@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -28,15 +28,96 @@ interface VotingPhaseProps {
   onVote: (targetPlayerId: string) => void;
 }
 
+// Memoized image card component for better performance
+const ImageCard = memo(({ 
+  image, 
+  idx, 
+  isMyImage, 
+  isSelected, 
+  hasVoted, 
+  onVote 
+}: { 
+  image: Image; 
+  idx: number; 
+  isMyImage: boolean; 
+  isSelected: boolean; 
+  hasVoted: boolean; 
+  onVote: (id: string) => void;
+}) => {
+  return (
+    <Card
+      className={`glass overflow-hidden border-2 transition-all ${
+        isMyImage
+          ? 'border-yellow-500/50 opacity-60 cursor-not-allowed'
+          : isSelected
+          ? 'border-primary ring-2 ring-primary/50 scale-105'
+          : hasVoted
+          ? 'opacity-50 cursor-not-allowed'
+          : 'border-muted/20 hover:border-primary/50 cursor-pointer hover:scale-105'
+      }`}
+      onClick={() => !isMyImage && !hasVoted && onVote(image.playerId)}
+    >
+      <div className="relative aspect-square">
+        <img
+          src={image.imageUrl}
+          alt={`Option ${idx + 1}`}
+          className="w-full h-full object-cover"
+          loading="lazy" // Add lazy loading
+        />
+        {isMyImage && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+            <Badge className="bg-yellow-500/20 border-yellow-500/50">
+              Your Image
+            </Badge>
+          </div>
+        )}
+        {isSelected && !isMyImage && (
+          <div className="absolute top-3 right-3">
+            <div className="bg-primary rounded-full p-2">
+              <Check className="w-6 h-6 text-primary-foreground" />
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        {!isMyImage && !hasVoted && (
+          <Button
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              onVote(image.playerId);
+            }}
+          >
+            <Vote className="w-4 h-4 mr-2" />
+            Vote for This
+          </Button>
+        )}
+        {isMyImage && (
+          <p className="text-xs text-center text-muted-foreground">
+            Can't vote for your own image
+          </p>
+        )}
+        {!isMyImage && hasVoted && isSelected && (
+          <p className="text-sm text-center font-semibold text-primary">
+            ✓ Your Vote
+          </p>
+        )}
+      </div>
+    </Card>
+  );
+});
+
+ImageCard.displayName = 'ImageCard';
+
 export const VotingPhase = ({ room, images, timer, hasVoted, myPlayerId, onVote }: VotingPhaseProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleVote = (imageId: string) => {
+  const handleVote = useCallback((imageId: string) => {
     if (!hasVoted && imageId !== myPlayerId) {
       setSelectedImage(imageId);
       onVote(imageId);
     }
-  };
+  }, [hasVoted, myPlayerId, onVote]);
 
   const timePercent = (timer / 30) * 100;
   const isLowTime = timer <= 10;
@@ -83,65 +164,15 @@ export const VotingPhase = ({ room, images, timer, hasVoted, myPlayerId, onVote 
             const isSelected = selectedImage === image.playerId;
 
             return (
-              <Card
+              <ImageCard
                 key={image.playerId}
-                className={`glass overflow-hidden border-2 transition-all ${
-                  isMyImage
-                    ? 'border-yellow-500/50 opacity-60 cursor-not-allowed'
-                    : isSelected
-                    ? 'border-primary ring-2 ring-primary/50 scale-105'
-                    : hasVoted
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'border-muted/20 hover:border-primary/50 cursor-pointer hover:scale-105'
-                }`}
-                onClick={() => !isMyImage && !hasVoted && handleVote(image.playerId)}
-              >
-                <div className="relative aspect-square">
-                  <img
-                    src={image.imageUrl}
-                    alt={`Option ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {isMyImage && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                      <Badge className="bg-yellow-500/20 border-yellow-500/50">
-                        Your Image
-                      </Badge>
-                    </div>
-                  )}
-                  {isSelected && !isMyImage && (
-                    <div className="absolute top-3 right-3">
-                      <div className="bg-primary rounded-full p-2">
-                        <Check className="w-6 h-6 text-primary-foreground" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  {!isMyImage && !hasVoted && (
-                    <Button
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVote(image.playerId);
-                      }}
-                    >
-                      <Vote className="w-4 h-4 mr-2" />
-                      Vote for This
-                    </Button>
-                  )}
-                  {isMyImage && (
-                    <p className="text-xs text-center text-muted-foreground">
-                      Can't vote for your own image
-                    </p>
-                  )}
-                  {!isMyImage && hasVoted && isSelected && (
-                    <p className="text-sm text-center font-semibold text-primary">
-                      ✓ Your Vote
-                    </p>
-                  )}
-                </div>
-              </Card>
+                image={image}
+                idx={idx}
+                isMyImage={isMyImage}
+                isSelected={isSelected}
+                hasVoted={hasVoted}
+                onVote={handleVote}
+              />
             );
           })}
         </div>

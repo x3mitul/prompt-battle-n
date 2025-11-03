@@ -9,13 +9,48 @@ export class ImageGenerator {
     this.maxRetries = 2;
     this.timeout = 30000;
     
+    // Cache for generated images (prompt -> base64 image)
+    this.imageCache = new Map();
+    this.maxCacheSize = 100; // Store up to 100 images
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
+    
+    // Clean cache every 30 minutes
+    setInterval(() => this.cleanCache(), 1800000);
+    
     console.log('🔑 Stability API Key configured:', this.stabilityApiKey ? `${this.stabilityApiKey.substring(0, 10)}...` : 'NOT FOUND');
+  }
+
+  cleanCache() {
+    if (this.imageCache.size > this.maxCacheSize) {
+      // Remove oldest 20% of entries
+      const entriesToRemove = Math.floor(this.maxCacheSize * 0.2);
+      const iterator = this.imageCache.keys();
+      for (let i = 0; i < entriesToRemove; i++) {
+        this.imageCache.delete(iterator.next().value);
+      }
+      console.log(`🧹 Cleaned image cache: ${entriesToRemove} entries removed`);
+    }
+  }
+
+  getCacheKey(prompt) {
+    // Normalize prompt for caching
+    return prompt.toLowerCase().trim();
   }
 
   async generateImage(word, userPrompt, retryCount = 0) {
     try {
       const finalPrompt = (userPrompt && userPrompt.trim()) ? userPrompt.trim() : word;
+      const cacheKey = this.getCacheKey(finalPrompt);
       
+      // Check cache first
+      if (this.imageCache.has(cacheKey)) {
+        this.cacheHits++;
+        console.log(`✨ Cache hit for: "${finalPrompt}" (${this.cacheHits} hits, ${this.cacheMisses} misses)`);
+        return this.imageCache.get(cacheKey);
+      }
+      
+      this.cacheMisses++;
       console.log(`Generating: "${finalPrompt}"`);
       
       if (!this.stabilityApiKey || this.stabilityApiKey === 'your_stability_api_key_here') {
@@ -23,7 +58,15 @@ export class ImageGenerator {
         return this.getFallbackImage(word);
       }
 
-      return await this.generateWithStability(finalPrompt, word, retryCount);
+      const imageUrl = await this.generateWithStability(finalPrompt, word, retryCount);
+      
+      // Cache the result (only if it's not a fallback)
+      if (imageUrl && !imageUrl.includes('placeholder')) {
+        this.imageCache.set(cacheKey, imageUrl);
+        console.log(`💾 Cached image for: "${finalPrompt}" (cache size: ${this.imageCache.size})`);
+      }
+      
+      return imageUrl;
       
     } catch (error) {
       console.error('Generation failed:', error.message);
@@ -48,13 +91,13 @@ export class ImageGenerator {
           body: JSON.stringify({
             text_prompts: [
               { text: finalPrompt, weight: 1.0 },
-              { text: 'blurry, low quality', weight: -1 }
+              { text: 'blurry, low quality, distorted', weight: -1 }
             ],
-            cfg_scale: 7.5,
-            height: 1024,
-            width: 1024,
+            cfg_scale: 7, // Reduced from 7.5 for faster generation
+            height: 768, // Reduced from 1024 for faster generation
+            width: 768,  // Reduced from 1024 for faster generation
             samples: 1,
-            steps: 40
+            steps: 30 // Reduced from 40 for 25% faster generation
           }),
           signal: controller.signal,
         }
