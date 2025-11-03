@@ -203,7 +203,7 @@ export class GameManager {
       const promise = this.imageGenerator.generateImage(room.word, prompt)
         .then(imageUrl => {
           room.images.set(playerId, imageUrl);
-          console.log(`Image generated for player ${playerId}`);
+          console.log(`✅ Image URL for player ${playerId}: ${imageUrl.substring(0, 100)}...`);
         })
         .catch(err => {
           console.error(`Failed to generate image for ${playerId}:`, err);

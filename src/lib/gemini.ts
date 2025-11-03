@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini AI client
+// Initialize Gemini AI client - Using gemini-pro model
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
 export interface ChatMessage {
@@ -27,24 +27,20 @@ export async function generateResponse(options: GenerateResponseOptions): Promis
     systemMessage = 'You are a helpful AI assistant that provides clear, concise, and engaging responses.',
     temperature = 0.7,
     maxTokens = 500,
-    model = 'gemini-pro'
+    model = 'gemini-2.5-flash'
   } = options;
 
   try {
     const genModel = genAI.getGenerativeModel({ 
       model,
+      systemInstruction: systemMessage,
       generationConfig: {
         temperature,
         maxOutputTokens: maxTokens,
       }
     });
 
-    // Combine system message with user prompt
-    const fullPrompt = systemMessage 
-      ? `${systemMessage}\n\nUser: ${prompt}`
-      : prompt;
-
-    const result = await genModel.generateContent(fullPrompt);
+    const result = await genModel.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
@@ -80,7 +76,7 @@ export async function generateLessonResponse(prompt: string): Promise<string> {
     systemMessage: 'You are a helpful AI assistant. Respond directly to the user\'s request without adding explanations, examples, or meta-commentary about prompt engineering. Just fulfill the request as asked. Keep responses concise and focused.',
     temperature: 0.9,
     maxTokens: 200,
-    model: 'gemini-pro'
+    model: 'gemini-2.5-flash'
   });
 }
 
@@ -114,7 +110,7 @@ Respond ONLY with a JSON object in this exact format (no markdown, no code block
       systemMessage: '',
       temperature: 0.3,
       maxTokens: 250,
-      model: 'gemini-pro'
+      model: 'gemini-2.5-flash'
     });
 
     // Remove markdown code blocks if present
