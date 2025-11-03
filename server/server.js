@@ -56,11 +56,52 @@ const io = new Server(httpServer, {
   transports: ['websocket', 'polling'],
   allowUpgrades: true,
   path: '/socket.io/',
+  maxHttpBufferSize: 1e6, // 1MB max message size
+  connectTimeout: 45000, // 45s connection timeout
 });
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' })); // Limit payload size
 app.use(compression()); // Enable gzip compression
+
+// Simple rate limiting for API endpoints
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS = 30; // 30 requests per minute
+
+const rateLimit = (req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(ip)) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+  
+  const record = rateLimitMap.get(ip);
+  
+  if (now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+  
+  if (record.count >= MAX_REQUESTS) {
+    return res.status(429).json({ error: 'Too many requests, please try again later' });
+  }
+  
+  record.count++;
+  next();
+};
+
+// Clean up old rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of rateLimitMap.entries()) {
+    if (now > record.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 300000);
 
 const gameManager = new GameManager(io);
 const promptEvaluator = new PromptEvaluator();
@@ -82,8 +123,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', rooms: gameManager.getRoomCount() });
 });
 
-// Prompt evaluation endpoint for solo arena
-app.post('/api/evaluate-prompt', async (req, res) => {
+// Prompt evaluation endpoint for solo arena with rate limiting
+app.post('/api/evaluate-prompt', rateLimit, async (req, res) => {
   try {
     const { prompt, challenge, levelId } = req.body;
     

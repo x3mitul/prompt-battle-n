@@ -7,6 +7,39 @@ export class GameManager {
     this.rooms = new Map();
     this.socketToRoom = new Map();
     this.imageGenerator = new ImageGenerator();
+    
+    // Auto-cleanup: Remove empty rooms every 5 minutes
+    this.cleanupInterval = setInterval(() => this.cleanupEmptyRooms(), 300000);
+    
+    // Auto-cleanup: Remove inactive rooms after 1 hour
+    this.inactivityTimeout = 3600000; // 1 hour
+  }
+
+  cleanupEmptyRooms() {
+    const now = Date.now();
+    for (const [roomId, room] of this.rooms.entries()) {
+      // Remove rooms with no players
+      if (room.players.length === 0) {
+        this.clearRoomTimer(room);
+        this.rooms.delete(roomId);
+        console.log(`🧹 Cleaned up empty room: ${room.code}`);
+      }
+      // Remove inactive rooms (no activity for 1 hour)
+      else if (room.lastActivity && (now - room.lastActivity) > this.inactivityTimeout) {
+        this.clearRoomTimer(room);
+        this.rooms.delete(roomId);
+        // Disconnect all players
+        room.players.forEach(player => {
+          const socket = this.io.sockets.sockets.get(player.id);
+          if (socket) {
+            socket.emit('roomClosed', { reason: 'Inactivity timeout' });
+            socket.leave(roomId);
+          }
+          this.socketToRoom.delete(player.id);
+        });
+        console.log(`🧹 Cleaned up inactive room: ${room.code}`);
+      }
+    }
   }
 
   generateRoomCode() {
@@ -39,7 +72,8 @@ export class GameManager {
       votes: new Map(),
       roundResults: [],
       timer: 0,
-      timerInterval: null
+      timerInterval: null,
+      lastActivity: Date.now() // Track last activity for cleanup
     };
 
     this.rooms.set(roomId, room);
@@ -345,6 +379,7 @@ export class GameManager {
     if (room.state !== 'prompting') return;
 
     room.prompts.set(socket.id, prompt);
+    room.lastActivity = Date.now(); // Update activity timestamp
     
     // Notify that player submitted
     this.io.to(room.id).emit('promptSubmitted', {
