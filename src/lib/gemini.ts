@@ -27,7 +27,7 @@ export async function generateResponse(options: GenerateResponseOptions): Promis
     systemMessage = 'You are a helpful AI assistant that provides clear, concise, and engaging responses.',
     temperature = 0.7,
     maxTokens = 500,
-    model = 'gemini-1.5-flash'
+    model = 'gemini-pro'
   } = options;
 
   try {
@@ -80,7 +80,7 @@ export async function generateLessonResponse(prompt: string): Promise<string> {
     systemMessage: 'You are a helpful AI assistant. Respond directly to the user\'s request without adding explanations, examples, or meta-commentary about prompt engineering. Just fulfill the request as asked. Keep responses concise and focused.',
     temperature: 0.9,
     maxTokens: 200,
-    model: 'gemini-1.5-flash'
+    model: 'gemini-pro'
   });
 }
 
@@ -114,7 +114,7 @@ Respond ONLY with a JSON object in this exact format (no markdown, no code block
       systemMessage: '',
       temperature: 0.3,
       maxTokens: 250,
-      model: 'gemini-1.5-flash'
+      model: 'gemini-pro'
     });
 
     // Remove markdown code blocks if present
