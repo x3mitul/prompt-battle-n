@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Home, Users, Pencil, Sparkles } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Users, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,7 +43,7 @@ export const ScribbleHome = () => {
 
     socket.emit('createRoom', { playerName, avatar });
 
-    socket.once('roomCreated', ({ roomCode, roomId }) => {
+    socket.once('roomCreated', ({ roomCode }) => {
       setIsCreating(false);
       toast({
         title: "Room Created! 🎉",

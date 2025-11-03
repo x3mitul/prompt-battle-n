@@ -64,7 +64,7 @@ export const ReactorLesson = ({ onComplete }: ReactorLessonProps) => {
         systemMessage,
         temperature,
         maxTokens,
-        model: 'gemini-2.0-flash'
+        model: 'gemini-1.5-flash'
       });
 
       setResponse(aiResponse);

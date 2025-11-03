@@ -19,10 +19,10 @@ interface PromptPhaseProps {
   timer: number;
   hasSubmitted: boolean;
   onSubmit: (prompt: string) => void;
-  onLeave: () => void;
+  onLeave?: () => void;
 }
 
-export const PromptPhase = ({ room, word, timer, hasSubmitted, onSubmit, onLeave }: PromptPhaseProps) => {
+export const PromptPhase = ({ room, word, timer, hasSubmitted, onSubmit }: PromptPhaseProps) => {
   const [prompt, setPrompt] = useState("");
 
   const handleSubmit = () => {

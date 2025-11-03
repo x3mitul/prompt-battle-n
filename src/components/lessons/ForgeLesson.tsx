@@ -144,7 +144,7 @@ export const ForgeLesson = ({ onComplete }: ForgeLessonProps) => {
         systemMessage: "Respond directly to the request as specified in the prompt. Follow the role, task, context, and tone exactly as described.",
         temperature: 0.7,
         maxTokens: 300,
-        model: 'gemini-2.0-flash'
+        model: 'gemini-1.5-flash'
       });
 
       setResponse(aiResponse);

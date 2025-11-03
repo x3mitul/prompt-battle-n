@@ -39,12 +39,6 @@ export const Arena = () => {
     []
   );
 
-  // Memoize XP value to avoid unnecessary localStorage reads
-  const currentXP = useMemo(
-    () => parseInt(localStorage.getItem('arena_xp') || '0'),
-    [] // Calculate once on mount
-  );
-
   const handleSubmit = useCallback(async () => {
     setIsEvaluating(true);
     
@@ -216,7 +210,7 @@ export const Arena = () => {
             </h3>
             
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {['clarity', 'specificity', 'creativity', 'structure'].map((key) => (
+              {(['clarity', 'specificity', 'creativity', 'structure'] as const).map((key) => (
                 <div key={key} className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold capitalize">{key}</span>
