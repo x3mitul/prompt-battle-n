@@ -9,6 +9,31 @@ export class PromptEvaluator {
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
+  async generateLessonResponse(userPrompt) {
+    try {
+      const systemInstruction = 'You are a helpful AI assistant. Respond directly to the user\'s request without adding explanations, examples, or meta-commentary about prompt engineering. Just fulfill the request as asked. Keep responses concise and focused.';
+      
+      const model = this.genAI.getGenerativeModel({ 
+        model: 'gemini-2.5-flash',
+        systemInstruction,
+        generationConfig: {
+          temperature: 0.9,
+          maxOutputTokens: 200,
+        }
+      });
+
+      const result = await model.generateContent(userPrompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      return text || 'No response generated.';
+      
+    } catch (error) {
+      console.error('❌ Lesson response error:', error.message);
+      throw error;
+    }
+  }
+
   async evaluatePrompt(userPrompt, challenge, levelId) {
     try {
       const evaluationPrompt = `You are an expert prompt engineering evaluator. Analyze the following user prompt based on the challenge criteria.

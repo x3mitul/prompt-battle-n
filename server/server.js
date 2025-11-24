@@ -141,6 +141,50 @@ app.post('/api/evaluate-prompt', rateLimit, async (req, res) => {
   }
 });
 
+// Lesson response endpoint with rate limiting
+app.post('/api/lesson-response', rateLimit, async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt || prompt.trim().length === 0) {
+      return res.status(400).json({ 
+        error: 'Please enter a prompt to get started.' 
+      });
+    }
+    
+    if (prompt.length > 1000) {
+      return res.status(400).json({ 
+        error: 'Your prompt is too long. Please keep it under 1000 characters.' 
+      });
+    }
+    
+    const response = await promptEvaluator.generateLessonResponse(prompt);
+    res.json({ response });
+    
+  } catch (error) {
+    console.error('Lesson response error:', error);
+    
+    // User-friendly error messages
+    if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key')) {
+      return res.status(500).json({ 
+        error: 'AI service is temporarily unavailable. Please try again later.' 
+      });
+    } else if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({ 
+        error: 'Too many requests. Please wait a moment and try again.' 
+      });
+    } else if (error.message?.includes('SAFETY')) {
+      return res.status(400).json({ 
+        error: 'Your prompt was blocked by safety filters. Please try a different approach.' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Unable to generate response. Please try again.' 
+    });
+  }
+});
+
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
 

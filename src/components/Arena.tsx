@@ -105,9 +105,11 @@ export const Arena = () => {
       });
     } catch (error) {
       console.error('Evaluation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
-        title: "Evaluation Failed",
-        description: "Unable to evaluate prompt. Please try again.",
+        title: "Unable to Evaluate",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

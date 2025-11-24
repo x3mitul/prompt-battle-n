@@ -70,11 +70,10 @@ export const SandboxLesson = ({ onComplete }: SandboxLessonProps) => {
   };
 
   const handleSubmit = async () => {
-    // Check if API key is configured
-    if (!isApiKeyConfigured()) {
+    if (!prompt.trim()) {
       toast({
-        title: "API Key Not Configured",
-        description: "Please configure your Gemini API key in the .env file.",
+        title: "Empty Prompt",
+        description: "Please enter a prompt to get started.",
         variant: "destructive",
       });
       return;
@@ -84,7 +83,7 @@ export const SandboxLesson = ({ onComplete }: SandboxLessonProps) => {
     setResponse("");
 
     try {
-      // Call Gemini API to generate response
+      // Call backend API to generate response
       const aiResponse = await generateLessonResponse(prompt);
       setResponse(aiResponse);
       
@@ -124,9 +123,9 @@ export const SandboxLesson = ({ onComplete }: SandboxLessonProps) => {
         description: "The AI has responded to your prompt.",
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to generate response";
+      const errorMessage = error instanceof Error ? error.message : "Unable to generate response";
       toast({
-        title: "Error",
+        title: "Generation Failed",
         description: errorMessage,
         variant: "destructive",
       });

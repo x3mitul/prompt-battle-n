@@ -67,17 +67,52 @@ export async function generateResponse(options: GenerateResponseOptions): Promis
 
 /**
  * Generate a response for lesson sandbox experimentation
+ * Now uses backend API to keep API key secure
  * @param prompt User's input prompt
  * @returns AI-generated response
  */
 export async function generateLessonResponse(prompt: string): Promise<string> {
-  return generateResponse({
-    prompt,
-    systemMessage: 'You are a helpful AI assistant. Respond directly to the user\'s request without adding explanations, examples, or meta-commentary about prompt engineering. Just fulfill the request as asked. Keep responses concise and focused.',
-    temperature: 0.9,
-    maxTokens: 200,
-    model: 'gemini-2.5-flash'
-  });
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+  
+  // Retry logic with exponential backoff
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(`${backendUrl}/api/lesson-response`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.response || 'No response generated.';
+      
+    } catch (error: any) {
+      lastError = error;
+      
+      // Don't retry on client errors (400s)
+      if (error.message?.includes('blocked') || error.message?.includes('too long')) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
+  }
+  
+  // All retries failed
+  throw lastError || new Error('Failed to generate response after multiple attempts.');
 }
 
 /**
