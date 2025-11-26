@@ -104,6 +104,10 @@ export default {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -114,6 +118,7 @@ export default {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
         "spin-slow": "spin-slow 20s linear infinite",
+        "shimmer": "shimmer 2s infinite",
       },
     },
   },

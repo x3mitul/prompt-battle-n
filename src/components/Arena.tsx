@@ -194,13 +194,21 @@ export const Arena = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-semibold mb-2 block">Your Prompt</label>
+              <label htmlFor="arena-prompt" className="text-sm font-semibold mb-2 block">Your Prompt</label>
               <Textarea
+                id="arena-prompt"
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Write your best prompt here..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey && userPrompt.trim() && !feedback && !isEvaluating) {
+                    handleSubmit();
+                  }
+                }}
+                placeholder="Write your best prompt here... (Ctrl+Enter to submit)"
                 className="min-h-[150px] glass border-secondary/20 focus:border-secondary/50"
+                aria-describedby="arena-prompt-hint"
               />
+              <p id="arena-prompt-hint" className="text-xs text-muted-foreground mt-1">Press Ctrl+Enter to quickly submit</p>
             </div>
 
             <Button
@@ -208,8 +216,9 @@ export const Arena = () => {
               disabled={!userPrompt.trim() || !!feedback || isEvaluating}
               className="w-full bg-gradient-to-r from-secondary to-secondary-glow"
               size="lg"
+              aria-label={isEvaluating ? 'AI is evaluating your prompt' : 'Submit prompt for evaluation'}
             >
-              <Sparkles className="w-5 h-5 mr-2" />
+              <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
               {isEvaluating ? 'AI Evaluating...' : 'Submit Prompt'}
             </Button>
           </div>

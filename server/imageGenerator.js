@@ -40,7 +40,23 @@ export class ImageGenerator {
 
   async generateImage(word, userPrompt, retryCount = 0) {
     try {
-      const finalPrompt = (userPrompt && userPrompt.trim()) ? userPrompt.trim() : word;
+      // Combine the theme word with user's prompt for better results
+      // If user provides a prompt, enhance it with the theme word
+      // If no prompt, just use the word
+      let finalPrompt;
+      if (userPrompt && userPrompt.trim()) {
+        const trimmedPrompt = userPrompt.trim();
+        // Check if user already included the word in their prompt
+        if (trimmedPrompt.toLowerCase().includes(word.toLowerCase())) {
+          finalPrompt = trimmedPrompt;
+        } else {
+          // Prepend the theme word to ensure the image matches the theme
+          finalPrompt = `${word}: ${trimmedPrompt}`;
+        }
+      } else {
+        finalPrompt = word;
+      }
+      
       const cacheKey = this.getCacheKey(finalPrompt);
       
       // Check cache first
@@ -90,14 +106,14 @@ export class ImageGenerator {
           },
           body: JSON.stringify({
             text_prompts: [
-              { text: finalPrompt, weight: 1.0 },
-              { text: 'blurry, low quality, distorted', weight: -1 }
+              { text: `high quality, detailed, ${finalPrompt}`, weight: 1.0 },
+              { text: 'blurry, low quality, distorted, ugly, deformed, watermark, text', weight: -1 }
             ],
-            cfg_scale: 7, // Reduced from 7.5 for faster generation
-            height: 768, // Reduced from 1024 for faster generation
-            width: 768,  // Reduced from 1024 for faster generation
+            cfg_scale: 7,
+            height: 1024, // SDXL requires 1024x1024 minimum
+            width: 1024,
             samples: 1,
-            steps: 30 // Reduced from 40 for 25% faster generation
+            steps: 25 // Reduced for faster generation
           }),
           signal: controller.signal,
         }

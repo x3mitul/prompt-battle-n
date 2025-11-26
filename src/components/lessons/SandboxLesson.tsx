@@ -170,19 +170,30 @@ export const SandboxLesson = ({ onComplete }: SandboxLessonProps) => {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-semibold mb-2 block">Your Prompt</label>
+              <label htmlFor="sandbox-prompt" className="text-sm font-semibold mb-2 block">Your Prompt</label>
               <Textarea
+                id="sandbox-prompt"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Try: 'Write a short story about a robot learning to paint'"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey && prompt.trim() && !isLoading) {
+                    handleSubmit();
+                  } else if (e.key === 'Escape') {
+                    setPrompt('');
+                  }
+                }}
+                placeholder="Try: 'Write a short story about a robot learning to paint' (Ctrl+Enter to submit)"
                 className="min-h-[150px] glass border-primary/20 focus:border-primary/50"
+                aria-describedby="sandbox-hint"
               />
+              <p id="sandbox-hint" className="text-xs text-muted-foreground mt-1 sr-only">Press Ctrl+Enter to submit or Escape to clear</p>
             </div>
 
             <Button
               onClick={handleSubmit}
               disabled={!prompt.trim() || isLoading}
               className="w-full bg-gradient-to-r from-primary to-primary-glow"
+              aria-label={isLoading ? 'Generating response' : 'Generate response'}
             >
               {isLoading ? (
                 <>

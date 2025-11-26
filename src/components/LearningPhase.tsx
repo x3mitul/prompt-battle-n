@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Sparkles, ArrowRight, Home, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Circle, Sparkles, ArrowRight, Home, ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AIOrb } from "./AIOrb";
-import { SandboxLesson } from "./lessons/SandboxLesson";
-import { ReactorLesson } from "./lessons/ReactorLesson";
-import { ForgeLesson } from "./lessons/ForgeLesson";
-import { MirrorLesson } from "./lessons/MirrorLesson";
-import { EthicsLesson } from "./lessons/EthicsLesson";
+
+// Lazy load lesson components to reduce initial bundle size
+const SandboxLesson = lazy(() => import("./lessons/SandboxLesson").then(m => ({ default: m.SandboxLesson })));
+const ReactorLesson = lazy(() => import("./lessons/ReactorLesson").then(m => ({ default: m.ReactorLesson })));
+const ForgeLesson = lazy(() => import("./lessons/ForgeLesson").then(m => ({ default: m.ForgeLesson })));
+const MirrorLesson = lazy(() => import("./lessons/MirrorLesson").then(m => ({ default: m.MirrorLesson })));
+const EthicsLesson = lazy(() => import("./lessons/EthicsLesson").then(m => ({ default: m.EthicsLesson })));
+
+// Loading component for lessons
+const LessonLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="text-center space-y-4">
+      <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+      <p className="text-muted-foreground">Loading lesson...</p>
+    </div>
+  </div>
+);
 
 const lessons = [
   { id: 1, title: "What is a Prompt?", component: SandboxLesson, icon: "🎯" },
@@ -61,9 +73,11 @@ export const LearningPhase = () => {
             </div>
           </div>
           
-          <LessonComponent 
-            onComplete={() => handleLessonComplete(currentLesson)} 
-          />
+          <Suspense fallback={<LessonLoader />}>
+            <LessonComponent 
+              onComplete={() => handleLessonComplete(currentLesson)} 
+            />
+          </Suspense>
         </div>
       </div>
     );
